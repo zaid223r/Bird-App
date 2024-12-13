@@ -31,7 +31,6 @@ class _HomeState extends State<Home> {
   Future<void> fetchBirds() async {
     try {
       final response = await http.get(Uri.parse('http://10.0.2.2:5214/api/birds'));
-      print(response.body.toString());
       if (response.statusCode == 200) {
         setState(() {
           birds = json.decode(response.body);
