@@ -1,3 +1,4 @@
+import 'package:bonus/BirdDetails.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -162,37 +163,46 @@ class _HomeState extends State<Home> {
     final String fullImageUrl =
         'http://10.0.2.2:5214/api/getImage?imgUrl=$imageUrl';
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundImage: NetworkImage(fullImageUrl),
-              radius: 30,
-              onBackgroundImageError: (exception, stackTrace) {
-                print('Error loading image: $exception');
-              },
-              // child: const Icon(Icons.broken_image),
-            ),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  bird['name'] ?? 'Unknown',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  bird['species'] ?? 'Unknown species',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            )
-          ],
+    return GestureDetector(
+      onTap: () {
+        print(bird['id']);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => BirdDetails(id: bird['id'].toString())));
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              CircleAvatar(
+                backgroundImage: NetworkImage(fullImageUrl),
+                radius: 30,
+                onBackgroundImageError: (exception, stackTrace) {
+                  print('Error loading image: $exception');
+                },
+                // child: const Icon(Icons.broken_image),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    bird['name'] ?? 'Unknown',
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    bird['species'] ?? 'Unknown species',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
