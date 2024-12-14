@@ -2,6 +2,8 @@ import 'package:bonus/BirdDetails.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:video_player/video_player.dart';
 
 class Home extends StatefulWidget {
   // ignore: prefer_const_constructors_in_immutables
@@ -14,6 +16,11 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  late YoutubePlayerController _controller;
+
+  // https://docs.flutter.dev/cookbook/plugins/play-video
+  late VideoPlayerController _localController;
+  late Future<void> _initializeVideoPlayerFuture;
   List<dynamic> birds = [];
   List<String> facts = [
     "Birds are the only animals with feathers.",
@@ -26,6 +33,15 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     fetchBirds();
+    _controller = YoutubePlayerController(
+      initialVideoId: '37cjLl07t5w',
+      flags: const YoutubePlayerFlags(
+        autoPlay: false,
+        mute: false,
+      ),
+    );
+    _localController = VideoPlayerController.asset('assets/vid.mp4');
+    _initializeVideoPlayerFuture = _localController.initialize();
   }
 
   Future<void> fetchBirds() async {
@@ -120,6 +136,13 @@ class _HomeState extends State<Home> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _localController.dispose();
+    super.dispose();
   }
 
   Widget PageHeader() {
@@ -226,6 +249,38 @@ class _HomeState extends State<Home> {
               ),
             ),
             FactSlider(),
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: 30),
+                child: YoutubePlayer(
+                  controller: _controller,
+                  showVideoProgressIndicator: true,
+                  progressIndicatorColor: Colors.red,
+                )),
+            SizedBox(height: 30,),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 30),
+              child:
+            FutureBuilder(
+              future: _initializeVideoPlayerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  _localController.play();
+                  // If the VideoPlayerController has finished initialization, use
+                  // the data it provides to limit the aspect ratio of the video.
+                  return AspectRatio(
+                    aspectRatio: _localController.value.aspectRatio,
+                    // Use the VideoPlayer widget to display the video.
+                    child: VideoPlayer(_localController),
+                  );
+                } else {
+                  // If the VideoPlayerController is still initializing, show a
+                  // loading spinner.
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+              },
+            )),
             const SizedBox(height: 24),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
