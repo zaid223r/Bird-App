@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Home extends StatefulWidget {
-  // I learned this here https://youtu.be/l3KnuUmlr-w
   // ignore: prefer_const_constructors_in_immutables
   Home({
     super.key,
@@ -30,7 +29,8 @@ class _HomeState extends State<Home> {
 
   Future<void> fetchBirds() async {
     try {
-      final response = await http.get(Uri.parse('http://10.0.2.2:5214/api/birds'));
+      final response =
+          await http.get(Uri.parse('http://10.0.2.2:5214/api/birds'));
       if (response.statusCode == 200) {
         setState(() {
           birds = json.decode(response.body);
@@ -56,7 +56,8 @@ class _HomeState extends State<Home> {
     return Container(
       height: 150,
       margin: const EdgeInsets.symmetric(vertical: 16),
-      child: PageView.builder( //chatgpt
+      child: PageView.builder(
+        //chatgpt
         controller: PageController(viewportFraction: 0.85),
         itemCount: facts.length,
         itemBuilder: (context, index) {
@@ -157,6 +158,10 @@ class _HomeState extends State<Home> {
   }
 
   Widget BirdCard(Map<String, dynamic> bird) {
+    final String imageUrl = bird['imageUrl'] ?? '';
+    final String fullImageUrl =
+        'http://10.0.2.2:5214/api/getImage?imgUrl=$imageUrl';
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
@@ -164,8 +169,12 @@ class _HomeState extends State<Home> {
         child: Row(
           children: [
             CircleAvatar(
-              backgroundImage: NetworkImage(bird['imageUrl'] ?? ''),
+              backgroundImage: NetworkImage(fullImageUrl),
               radius: 30,
+              onBackgroundImageError: (exception, stackTrace) {
+                print('Error loading image: $exception');
+              },
+              // child: const Icon(Icons.broken_image),
             ),
             const SizedBox(width: 16),
             Column(
@@ -173,7 +182,8 @@ class _HomeState extends State<Home> {
               children: [
                 Text(
                   bird['name'] ?? 'Unknown',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -192,29 +202,34 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          color: const Color.fromARGB(255, 255, 255, 255),
-          child: Column(
-            children: [
-              CustomAppBar(),
-              PageHeader(),
-              const SizedBox(height: 24,),
-              const Text("Facts", style: TextStyle(fontSize: 32),),
-              FactSlider(),
-              const SizedBox(height: 24,),
-              const Text("Birds", style: TextStyle(fontSize: 32),),
-              Expanded(
-                child: birds.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView.builder(
-                  itemCount: birds.length,
-                  itemBuilder: (context, index) {
-                    return BirdCard(birds[index]);
-                  },
-                ),
+        child: ListView(
+          physics: const BouncingScrollPhysics(), //Searched and found this
+          children: [
+            CustomAppBar(),
+            PageHeader(),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Facts",
+                style: TextStyle(fontSize: 32),
               ),
-            ],
-          ),
+            ),
+            FactSlider(),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Birds",
+                style: TextStyle(fontSize: 32),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (birds.isEmpty)
+              const Center(child: CircularProgressIndicator())
+            else
+              ...birds.map((bird) => BirdCard(bird)).toList(),
+          ],
         ),
       ),
     );
